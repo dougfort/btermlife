@@ -51,9 +51,7 @@ impl GameState for State {
 fn main() -> BError {
     let context = BTermBuilder::simple80x50().with_title("Life").build()?;
     let mut state = State::new();
-    state.live_cells.push(Point::new(5, 4));
-    state.live_cells.push(Point::new(5, 5));
-    state.live_cells.push(Point::new(5, 6));
+    state.live_cells = glider();
 
     main_loop(context, state)
 }
@@ -64,12 +62,12 @@ pub fn step(current: &[Point]) -> Vec<Point> {
     for point in current {
         for x in [(point.x - 1), point.x, (point.x + 1)].iter() {
             for y in [(point.y - 1), point.y, (point.y + 1)].iter() {
-                let neighbor_cell = Point { x: *x, y: *y };
-                let state = &mut neighbor_map.entry(neighbor_cell).or_insert(CellState {
+                let neighbor = compute_neighbor(*x, *y);
+                let state = &mut neighbor_map.entry(neighbor).or_insert(CellState {
                     live: false,
                     count: 0,
                 });
-                if neighbor_cell == *point {
+                if neighbor == *point {
                     state.live = true;
                 } else {
                     state.count += 1;
@@ -90,4 +88,37 @@ pub fn step(current: &[Point]) -> Vec<Point> {
         })
         .map(|(cell, _)| *cell)
         .collect()
+}
+
+fn compute_neighbor(x: i32, y: i32) -> Point {
+    let adjusted_x = match x {
+        x if x < 0 => SCREEN_WIDTH - 1,
+        x if x > SCREEN_WIDTH - 1 => 0,
+        _ => x,
+    };
+    let adjusted_y = match y {
+        y if y < 0 => SCREEN_HEIGHT - 1,
+        y if y > SCREEN_HEIGHT - 1 => 0,
+        _ => y,
+    };
+    Point::new(adjusted_x, adjusted_y)
+}
+
+fn glider() -> Vec<Point> {
+    // glider
+    //
+    //  *
+    //   *
+    // ***
+    //           (1, ymax-2)
+    //                     (2, ymax-1)
+    // (0, ymax) (1, ymax) (2, ymax)
+    let ymax: i32 = SCREEN_HEIGHT - 1;
+    let mut points = Vec::new();
+    points.push(Point::new(0, ymax));
+    points.push(Point::new(1, ymax));
+    points.push(Point::new(2, ymax));
+    points.push(Point::new(2, ymax - 1));
+    points.push(Point::new(1, ymax - 2));
+    points
 }
