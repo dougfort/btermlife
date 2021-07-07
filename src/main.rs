@@ -78,13 +78,14 @@ pub fn step(current: &[Point]) -> Vec<Point> {
 
     neighbor_map
         .iter()
-        .filter(|(_, state)| match state {
-            CellState {
-                live: true,
-                count: 2,
-            } => true,
-            CellState { count: 3, .. } => true,
-            _ => false,
+        .filter(|(_, state)| {
+            matches!(
+                state,
+                CellState {
+                    live: true,
+                    count: 2,
+                } | CellState { count: 3, .. }
+            )
         })
         .map(|(cell, _)| *cell)
         .collect()
@@ -114,11 +115,12 @@ fn glider() -> Vec<Point> {
     //                     (2, ymax-1)
     // (0, ymax) (1, ymax) (2, ymax)
     let ymax: i32 = SCREEN_HEIGHT - 1;
-    let mut points = Vec::new();
-    points.push(Point::new(0, ymax));
-    points.push(Point::new(1, ymax));
-    points.push(Point::new(2, ymax));
-    points.push(Point::new(2, ymax - 1));
-    points.push(Point::new(1, ymax - 2));
+    let points = vec![
+        Point::new(0, ymax),
+        Point::new(1, ymax),
+        Point::new(2, ymax),
+        Point::new(2, ymax - 1),
+        Point::new(1, ymax - 2),
+    ];
     points
 }
